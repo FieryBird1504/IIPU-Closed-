@@ -112,6 +112,42 @@ void getMemoryInfo() {
 		{
 			cout << endl;
 		}
+
+		WORD UDMA_supports = data[88];
+
+		cout << "Ultra DMA supports: ";
+		if (UDMA_supports & 0x40)
+		{
+			cout << "0 1 2 3 4 5 6" << endl;
+		}
+		else if (UDMA_supports & 0x20)
+		{
+			cout << "0 1 2 3 4 5" << endl;
+		}
+		else if (UDMA_supports & 0x10)
+		{
+			cout << "0 1 2 3 4" << endl;
+		}
+		else if (UDMA_supports & 0x8)
+		{
+			cout << "0 1 2 3" << endl;
+		}
+		else if (UDMA_supports & 0x4)
+		{
+			cout << "0 1 2" << endl;
+		}
+		else if (UDMA_supports & 0x2)
+		{
+			cout << "0 1" << endl;
+		}
+		else if (UDMA_supports & 0x1)
+		{
+			cout << "0" << endl;
+		}
+		else
+		{
+			cout << endl;
+		}
 	}
 
 int main() {
