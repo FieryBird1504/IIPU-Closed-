@@ -148,6 +148,22 @@ void getMemoryInfo() {
 		{
 			cout << endl;
 		}
+
+		WORD PIO_supports = data[64];
+
+		cout << "PIO supports: ";
+		if (PIO_supports & 0x2)
+		{
+			cout << "0 1 2 3 4" << endl;
+		}
+		else if (PIO_supports & 0x1)
+		{
+			cout << "0 1 2 3" << endl;
+		}
+		else
+		{
+			cout << endl;
+		}
 	}
 
 int main() {
