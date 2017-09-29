@@ -55,139 +55,146 @@ void getMemoryInfo() {
 			}
 		}
 	}
+
+	cout << setw(8) << "HDD"
+		<< setw(16) << totalDiskSpace.QuadPart
+		<< setw(16) << totalFreeSpace.QuadPart
+		<< setw(16) << setprecision(3) << 100.0 - (double)totalFreeSpace.QuadPart / (double)totalDiskSpace.QuadPart * Hundred
+		<< driveType[GetDriveType(NULL)]
+		<< endl;
 }
 
-	void getDeviceInfo(HANDLE diskHandle, STORAGE_PROPERTY_QUERY storageProtertyQuery) {
-		STORAGE_DEVICE_DESCRIPTOR* deviceDescriptor = (STORAGE_DEVICE_DESCRIPTOR*)calloc(bThousand, 1);
-		deviceDescriptor->Size = bThousand;
+void getDeviceInfo(HANDLE diskHandle, STORAGE_PROPERTY_QUERY storageProtertyQuery) {
+	STORAGE_DEVICE_DESCRIPTOR* deviceDescriptor = (STORAGE_DEVICE_DESCRIPTOR*)calloc(bThousand, 1);
+	deviceDescriptor->Size = bThousand;
 
-		if (!DeviceIoControl(diskHandle, IOCTL_STORAGE_QUERY_PROPERTY, &storageProtertyQuery, sizeof(storageProtertyQuery), deviceDescriptor, bThousand, NULL, 0)) {
-			printf("%d", GetLastError());
-			CloseHandle(diskHandle);
-			exit(-1);
-		}
-
-		cout << "Product ID:    " << (char*)(deviceDescriptor)+deviceDescriptor->ProductIdOffset << endl;
-		cout << "Version        " << (char*)(deviceDescriptor)+deviceDescriptor->ProductRevisionOffset << endl;
-		cout << "Bus type:      " << busType[deviceDescriptor->BusType] << endl;
-		cout << "Serial number: " << (char*)(deviceDescriptor)+deviceDescriptor->SerialNumberOffset << endl;
+	if (!DeviceIoControl(diskHandle, IOCTL_STORAGE_QUERY_PROPERTY, &storageProtertyQuery, sizeof(storageProtertyQuery), deviceDescriptor, bThousand, NULL, 0)) {
+		printf("%d", GetLastError());
+		CloseHandle(diskHandle);
+		exit(-1);
 	}
 
-	void getAtaSupportStandarts(HANDLE diskHandle) {
+	cout << "Product ID:    " << (char*)(deviceDescriptor)+deviceDescriptor->ProductIdOffset << endl;
+	cout << "Version        " << (char*)(deviceDescriptor)+deviceDescriptor->ProductRevisionOffset << endl;
+	cout << "Bus type:      " << busType[deviceDescriptor->BusType] << endl;
+	cout << "Serial number: " << (char*)(deviceDescriptor)+deviceDescriptor->SerialNumberOffset << endl;
+}
 
-		UCHAR identifyDataBuffer[512 + sizeof(ATA_PASS_THROUGH_EX)] = { 0 };
+void getAtaSupportStandarts(HANDLE diskHandle) {
 
-		ATA_PASS_THROUGH_EX &PTE = *(ATA_PASS_THROUGH_EX *)identifyDataBuffer;
-		PTE.Length = sizeof(PTE);
-		PTE.TimeOutValue = 10;
-		PTE.DataTransferLength = 512;
-		PTE.DataBufferOffset = sizeof(ATA_PASS_THROUGH_EX);
-		PTE.AtaFlags = ATA_FLAGS_DATA_IN;
+	UCHAR identifyDataBuffer[512 + sizeof(ATA_PASS_THROUGH_EX)] = { 0 };
 
-		IDEREGS *ideRegs = (IDEREGS *)PTE.CurrentTaskFile;
-		ideRegs->bCommandReg = 0xEC;
+	ATA_PASS_THROUGH_EX &PTE = *(ATA_PASS_THROUGH_EX *)identifyDataBuffer;
+	PTE.Length = sizeof(PTE);
+	PTE.TimeOutValue = 10;
+	PTE.DataTransferLength = 512;
+	PTE.DataBufferOffset = sizeof(ATA_PASS_THROUGH_EX);
+	PTE.AtaFlags = ATA_FLAGS_DATA_IN;
 
-		if (!DeviceIoControl(diskHandle, IOCTL_ATA_PASS_THROUGH, &PTE, sizeof(identifyDataBuffer), &PTE, sizeof(identifyDataBuffer), NULL, NULL)) {
-			cout << GetLastError() << std::endl;
-			return;
-		}
+	IDEREGS *ideRegs = (IDEREGS *)PTE.CurrentTaskFile;
+	ideRegs->bCommandReg = 0xEC;
 
-		WORD *data = (WORD *)(identifyDataBuffer + sizeof(ATA_PASS_THROUGH_EX));
-		short ataSupportByte = data[80];
+	if (!DeviceIoControl(diskHandle, IOCTL_ATA_PASS_THROUGH, &PTE, sizeof(identifyDataBuffer), &PTE, sizeof(identifyDataBuffer), NULL, NULL)) {
+		cout << GetLastError() << std::endl;
+		return;
+	}
 
-		WORD MDMA_supports = data[63];
+	WORD *data = (WORD *)(identifyDataBuffer + sizeof(ATA_PASS_THROUGH_EX));
+	short ataSupportByte = data[80];
 
-		if (MDMA_supports & 0x4)
-		{
-			cout << "Multiword DMA supports: 0 1 2" << endl;
-		}
-		else if (MDMA_supports & 0x2)
-		{
-			cout << "Multiword DMA supports: 0 1" << endl;
-		}
-		else if (MDMA_supports & 0x1)
-		{
-			cout << "Multiword DMA supports: 0" << endl;
-		}
-		else
-		{
-			cout << endl;
-		}
+	WORD MDMA_supports = data[63];
 
-		WORD UDMA_supports = data[88];
-
-		cout << "Ultra DMA supports: ";
-		if (UDMA_supports & 0x40)
-		{
-			cout << "0 1 2 3 4 5 6" << endl;
-		}
-		else if (UDMA_supports & 0x20)
-		{
-			cout << "0 1 2 3 4 5" << endl;
-		}
-		else if (UDMA_supports & 0x10)
-		{
-			cout << "0 1 2 3 4" << endl;
-		}
-		else if (UDMA_supports & 0x8)
-		{
-			cout << "0 1 2 3" << endl;
-		}
-		else if (UDMA_supports & 0x4)
-		{
-			cout << "0 1 2" << endl;
-		}
-		else if (UDMA_supports & 0x2)
-		{
-			cout << "0 1" << endl;
-		}
-		else if (UDMA_supports & 0x1)
-		{
-			cout << "0" << endl;
-		}
-		else
-		{
-			cout << endl;
-		}
-
-		WORD PIO_supports = data[64];
-
-		cout << "PIO supports: ";
-		if (PIO_supports & 0x2)
-		{
-			cout << "0 1 2 3 4" << endl;
-		}
-		else if (PIO_supports & 0x1)
-		{
-			cout << "0 1 2 3" << endl;
-		}
-		else
-		{
-			cout << endl;
-		}
-
-		int i = 2 * BYTE_SIZE;
-		int bitArray[2 * BYTE_SIZE];
-		while (i--) {
-			bitArray[i] = ataSupportByte & 32768 ? 1 : 0;
-			ataSupportByte = ataSupportByte << 1;
-		}
-
-		cout << "ATA Support:   ";
-		for (int i = 8; i >= 4; i--) {
-			if (bitArray[i] == 1) {
-				cout << "ATA " << i;
-				if (i != 4) {
-					cout << ", ";
-				}
-			}
-		}
+	if (MDMA_supports & 0x4)
+	{
+		cout << "Multiword DMA supports: 0 1 2" << endl;
+	}
+	else if (MDMA_supports & 0x2)
+	{
+		cout << "Multiword DMA supports: 0 1" << endl;
+	}
+	else if (MDMA_supports & 0x1)
+	{
+		cout << "Multiword DMA supports: 0" << endl;
+	}
+	else
+	{
 		cout << endl;
 	}
 
+	WORD UDMA_supports = data[88];
+
+	cout << "Ultra DMA supports: ";
+	if (UDMA_supports & 0x40)
+	{
+		cout << "0 1 2 3 4 5 6" << endl;
+	}
+	else if (UDMA_supports & 0x20)
+	{
+		cout << "0 1 2 3 4 5" << endl;
+	}
+	else if (UDMA_supports & 0x10)
+	{
+		cout << "0 1 2 3 4" << endl;
+	}
+	else if (UDMA_supports & 0x8)
+	{
+		cout << "0 1 2 3" << endl;
+	}
+	else if (UDMA_supports & 0x4)
+	{
+		cout << "0 1 2" << endl;
+	}
+	else if (UDMA_supports & 0x2)
+	{
+		cout << "0 1" << endl;
+	}
+	else if (UDMA_supports & 0x1)
+	{
+		cout << "0" << endl;
+	}
+	else
+	{
+		cout << endl;
+	}
+
+	WORD PIO_supports = data[64];
+
+	cout << "PIO supports: ";
+	if (PIO_supports & 0x2)
+	{
+		cout << "0 1 2 3 4" << endl;
+	}
+	else if (PIO_supports & 0x1)
+	{
+		cout << "0 1 2 3" << endl;
+	}
+	else
+	{
+		cout << endl;
+	}
+
+	int i = 2 * BYTE_SIZE;
+	int bitArray[2 * BYTE_SIZE];
+	while (i--) {
+		bitArray[i] = ataSupportByte & 32768 ? 1 : 0;
+		ataSupportByte = ataSupportByte << 1;
+	}
+
+	cout << "ATA Support:   ";
+	for (int i = 8; i >= 4; i--) {
+		if (bitArray[i] == 1) {
+			cout << "ATA " << i;
+			if (i != 4) {
+				cout << ", ";
+			}
+		}
+	}
+	cout << endl;
+}
+
 int main() {
 	STORAGE_PROPERTY_QUERY storageProtertyQuery;
-	storageProtertyQuery.QueryType = PropertyStandardQuery; 
+	storageProtertyQuery.QueryType = PropertyStandardQuery;
 	storageProtertyQuery.PropertyId = StorageDeviceProperty;
 
 	HANDLE diskHandle = CreateFile("//./PhysicalDrive0", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL);

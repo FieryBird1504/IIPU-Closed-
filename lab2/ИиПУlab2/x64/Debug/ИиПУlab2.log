@@ -6,10 +6,5 @@ d:\iipu (closed)\lab2\иипуlab2\source.cpp(50): error C2664: "UINT GetDriveTy
   d:\iipu (closed)\lab2\иипуlab2\source.cpp(50): note: Типы, на которые указывают указатели, не связаны; для преобразования требуется reinterpret_cast, приведение в стиле С или приведение в стиле функции
 d:\iipu (closed)\lab2\иипуlab2\source.cpp(52): error C2664: "UINT GetDriveTypeW(LPCWSTR)": невозможно преобразовать аргумент 1 из "const char *" в "LPCWSTR"
   d:\iipu (closed)\lab2\иипуlab2\source.cpp(52): note: Типы, на которые указывают указатели, не связаны; для преобразования требуется reinterpret_cast, приведение в стиле С или приведение в стиле функции
-d:\iipu (closed)\lab2\иипуlab2\source.cpp(59): error C2601: getDeviceInfo: недопустимые локальные определения функций
-  d:\iipu (closed)\lab2\иипуlab2\source.cpp(16): note: эта строка содержит скобку "{", которая пока не имеет парной
-d:\iipu (closed)\lab2\иипуlab2\source.cpp(75): error C2601: getAtaSupportStandarts: недопустимые локальные определения функций
-  d:\iipu (closed)\lab2\иипуlab2\source.cpp(16): note: эта строка содержит скобку "{", которая пока не имеет парной
-d:\iipu (closed)\lab2\иипуlab2\source.cpp(187): error C2601: main: недопустимые локальные определения функций
-  d:\iipu (closed)\lab2\иипуlab2\source.cpp(16): note: эта строка содержит скобку "{", которая пока не имеет парной
-d:\iipu (closed)\lab2\иипуlab2\source.cpp(16): fatal error C1075: в конце файла обнаружен левый непарный фигурная скобка "{"
+d:\iipu (closed)\lab2\иипуlab2\source.cpp(200): error C2664: "HANDLE CreateFileW(LPCWSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,DWORD,DWORD,HANDLE)": невозможно преобразовать аргумент 1 из "const char [19]" в "LPCWSTR"
+  d:\iipu (closed)\lab2\иипуlab2\source.cpp(200): note: Типы, на которые указывают указатели, не связаны; для преобразования требуется reinterpret_cast, приведение в стиле С или приведение в стиле функции

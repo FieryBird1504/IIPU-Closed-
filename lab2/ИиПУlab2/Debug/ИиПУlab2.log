@@ -1,1 +1,3 @@
-﻿  ИиПУlab2.vcxproj -> C:\Users\Lenovo\Desktop\передача\ИиПУlab2\Debug\ИиПУlab2.exe
+﻿  Source.cpp
+d:\iipu (closed)\lab2\иипуlab2\source.cpp(39): warning C4554: >>: проверьте порядок применения операторов на наличие ошибки; для четкого задания порядка используйте скобки
+  ИиПУlab2.vcxproj -> D:\IIPU (Closed)\lab2\Debug\ИиПУlab2.exe
