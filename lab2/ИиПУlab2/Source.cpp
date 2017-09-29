@@ -72,6 +72,21 @@ void getMemoryInfo() {
 		cout << "Serial number: " << (char*)(deviceDescriptor)+deviceDescriptor->SerialNumberOffset << endl;
 	}
 
+	void getStandarts(HANDLE diskHandle) {
+
+		UCHAR identifyDataBuffer[512 + sizeof(ATA_PASS_THROUGH_EX)] = { 0 };
+
+		ATA_PASS_THROUGH_EX &PTE = *(ATA_PASS_THROUGH_EX *)identifyDataBuffer;
+		PTE.Length = sizeof(PTE);
+		PTE.TimeOutValue = 10;
+		PTE.DataTransferLength = 512;
+		PTE.DataBufferOffset = sizeof(ATA_PASS_THROUGH_EX);
+		PTE.AtaFlags = ATA_FLAGS_DATA_IN;
+
+		IDEREGS *ideRegs = (IDEREGS *)PTE.CurrentTaskFile;
+		ideRegs->bCommandReg = 0xEC;
+	}
+
 int main() {
 	STORAGE_PROPERTY_QUERY storageProtertyQuery;
 	storageProtertyQuery.QueryType = PropertyStandardQuery; 
