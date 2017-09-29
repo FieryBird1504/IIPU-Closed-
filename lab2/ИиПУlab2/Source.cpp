@@ -55,6 +55,7 @@ void getMemoryInfo() {
 			}
 		}
 	}
+}
 
 	void getDeviceInfo(HANDLE diskHandle, STORAGE_PROPERTY_QUERY storageProtertyQuery) {
 		STORAGE_DEVICE_DESCRIPTOR* deviceDescriptor = (STORAGE_DEVICE_DESCRIPTOR*)calloc(bThousand, 1);
@@ -164,6 +165,24 @@ void getMemoryInfo() {
 		{
 			cout << endl;
 		}
+
+		int i = 2 * BYTE_SIZE;
+		int bitArray[2 * BYTE_SIZE];
+		while (i--) {
+			bitArray[i] = ataSupportByte & 32768 ? 1 : 0;
+			ataSupportByte = ataSupportByte << 1;
+		}
+
+		cout << "ATA Support:   ";
+		for (int i = 8; i >= 4; i--) {
+			if (bitArray[i] == 1) {
+				cout << "ATA " << i;
+				if (i != 4) {
+					cout << ", ";
+				}
+			}
+		}
+		cout << endl;
 	}
 
 int main() {
