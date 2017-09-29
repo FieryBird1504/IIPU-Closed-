@@ -72,7 +72,7 @@ void getMemoryInfo() {
 		cout << "Serial number: " << (char*)(deviceDescriptor)+deviceDescriptor->SerialNumberOffset << endl;
 	}
 
-	void getStandarts(HANDLE diskHandle) {
+	void getAtaSupportStandarts(HANDLE diskHandle) {
 
 		UCHAR identifyDataBuffer[512 + sizeof(ATA_PASS_THROUGH_EX)] = { 0 };
 
@@ -85,6 +85,14 @@ void getMemoryInfo() {
 
 		IDEREGS *ideRegs = (IDEREGS *)PTE.CurrentTaskFile;
 		ideRegs->bCommandReg = 0xEC;
+
+		if (!DeviceIoControl(diskHandle, IOCTL_ATA_PASS_THROUGH, &PTE, sizeof(identifyDataBuffer), &PTE, sizeof(identifyDataBuffer), NULL, NULL)) {
+			cout << GetLastError() << std::endl;
+			return;
+		}
+
+		WORD *data = (WORD *)(identifyDataBuffer + sizeof(ATA_PASS_THROUGH_EX));
+		short ataSupportByte = data[80];
 	}
 
 int main() {
