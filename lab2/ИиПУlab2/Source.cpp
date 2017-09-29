@@ -65,6 +65,11 @@ void getMemoryInfo() {
 			CloseHandle(diskHandle);
 			exit(-1);
 		}
+
+		cout << "Product ID:    " << (char*)(deviceDescriptor)+deviceDescriptor->ProductIdOffset << endl;
+		cout << "Version        " << (char*)(deviceDescriptor)+deviceDescriptor->ProductRevisionOffset << endl;
+		cout << "Bus type:      " << busType[deviceDescriptor->BusType] << endl;
+		cout << "Serial number: " << (char*)(deviceDescriptor)+deviceDescriptor->SerialNumberOffset << endl;
 	}
 
 int main() {
