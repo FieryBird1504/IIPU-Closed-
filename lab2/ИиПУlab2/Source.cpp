@@ -93,6 +93,25 @@ void getMemoryInfo() {
 
 		WORD *data = (WORD *)(identifyDataBuffer + sizeof(ATA_PASS_THROUGH_EX));
 		short ataSupportByte = data[80];
+
+		WORD MDMA_supports = data[63];
+
+		if (MDMA_supports & 0x4)
+		{
+			cout << "Multiword DMA supports: 0 1 2" << endl;
+		}
+		else if (MDMA_supports & 0x2)
+		{
+			cout << "Multiword DMA supports: 0 1" << endl;
+		}
+		else if (MDMA_supports & 0x1)
+		{
+			cout << "Multiword DMA supports: 0" << endl;
+		}
+		else
+		{
+			cout << endl;
+		}
 	}
 
 int main() {
