@@ -56,6 +56,17 @@ void getMemoryInfo() {
 		}
 	}
 
+	void getDeviceInfo(HANDLE diskHandle, STORAGE_PROPERTY_QUERY storageProtertyQuery) {
+		STORAGE_DEVICE_DESCRIPTOR* deviceDescriptor = (STORAGE_DEVICE_DESCRIPTOR*)calloc(bThousand, 1);
+		deviceDescriptor->Size = bThousand;
+
+		if (!DeviceIoControl(diskHandle, IOCTL_STORAGE_QUERY_PROPERTY, &storageProtertyQuery, sizeof(storageProtertyQuery), deviceDescriptor, bThousand, NULL, 0)) {
+			printf("%d", GetLastError());
+			CloseHandle(diskHandle);
+			exit(-1);
+		}
+	}
+
 int main() {
 	STORAGE_PROPERTY_QUERY storageProtertyQuery;
 	storageProtertyQuery.QueryType = PropertyStandardQuery; 
