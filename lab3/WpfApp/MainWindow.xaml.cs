@@ -32,5 +32,16 @@ namespace WpfApp
             aTimer.Interval = new TimeSpan(0, 0, 1);
             aTimer.Start();
         }
+        [DllImport("cppdll.dll", EntryPoint = "GetTimeout")]
+        private static extern int GetTimeout();
+        [DllImport("cppdll.dll", EntryPoint = "StatusCheck")]
+        private static extern int StatusCheck();
+        [DllImport("cppdll.dll", EntryPoint = "RemainTime")]
+        private static extern int RemainTime();
+        [DllImport("cppdll.dll", EntryPoint = "RemainPercent")]
+        private static extern int RemainPercent();
+
+        [DllImport("cppdll.dll", EntryPoint = "SetTimeout")]
+        public static extern void SetTimeout(int timeInS);
     }
 }
