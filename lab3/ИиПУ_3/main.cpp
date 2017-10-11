@@ -32,9 +32,16 @@ extern "C"
 
 	__declspec(dllexport) void SetTimeout(int new_timeout)
 	{
+		SYSTEM_POWER_POLICY system_power_policy;
+		CallNtPowerInformation(SystemPowerPolicyDc, NULL, 0, &system_power_policy, sizeof(system_power_policy));
+		system_power_policy.VideoTimeout = new_timeout;
+		CallNtPowerInformation(SystemPowerPolicyDc, &system_power_policy, sizeof(system_power_policy), NULL, 0);
 	}
 
 	__declspec(dllexport) int GetTimeout()
 	{
+		SYSTEM_POWER_POLICY system_power_policy;
+		CallNtPowerInformation(SystemPowerPolicyDc, NULL, 0, &system_power_policy, sizeof(system_power_policy));
+		return system_power_policy.VideoTimeout;
 	}
 }
