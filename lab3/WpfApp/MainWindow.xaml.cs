@@ -23,6 +23,8 @@ namespace WpfApp
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly int oldtimeout = GetTimeout();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -43,5 +45,30 @@ namespace WpfApp
 
         [DllImport("cppdll.dll", EntryPoint = "SetTimeout")]
         public static extern void SetTimeout(int timeInS);
+
+        public static bool isRunningOnBattery { get; set; }
+        private System.Windows.Threading.DispatcherTimer aTimer;
+
+        private void dispatcherTimer_Tick(object source, EventArgs e)
+        {
+            {
+                if (StatusCheck() == 1)
+                {
+                    Status.Content = "Connected";
+                    SetTimeout(oldtimeout);
+                }
+                else
+                {
+                    Status.Content = "Disconnected";
+                    SetTimeout(5);
+                }
+
+                TimeRemaining.Content = ((RemainTime() / 60 / 60) + "h " + (RemainTime() / 60 % 60) + "m").ToString();
+                if (RemainTime() == -1)
+                    TimeRemaining.Content = "Unknown";
+
+                RemainingPercents.Content = RemainPercent().ToString();
+            }
+        }
     }
 }
