@@ -70,5 +70,10 @@ namespace WpfApp
                 RemainingPercents.Content = RemainPercent().ToString();
             }
         }
+
+        private void ReturnOldTimeout(object source, EventArgs e)
+        {
+            SetTimeout(oldtimeout);
+        }
     }
 }
