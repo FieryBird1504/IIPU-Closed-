@@ -29,5 +29,34 @@ namespace USBMonitorInForms
         }
 
         public string DeviceId { get; set; }
+
+        public string FriendlyName
+        {
+            get
+            {
+                if (!this.isConnected)
+                {
+                    throw new InvalidOperationException("Not connected to device.");
+                }
+
+                IPortableDeviceContent content;
+                IPortableDeviceProperties properties;
+                this.device.Content(out content);
+                content.Properties(out properties);
+
+                IPortableDeviceValues propertyValues;
+                properties.GetValues("DEVICE", null, out propertyValues);
+
+                var property = new _tagpropertykey();
+                property.fmtid = new Guid(0x26D4979A, 0xE643, 0x4626, 0x9E, 0x2B,
+                                          0x73, 0x6D, 0xC0, 0xC9, 0x2F, 0xDC);
+                property.pid = 12;
+
+                string propertyValue;
+                propertyValues.GetStringValue(ref property, out propertyValue);
+
+                return propertyValue;
+            }
+        }
     }
 }
