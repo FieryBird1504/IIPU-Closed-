@@ -150,7 +150,6 @@ namespace USBMonitorInForms
                 var deviceIds = new string[1];
                 uint count = 1;
                 deviceManager.GetDevices(ref deviceIds[0], ref count);
-                // Retrieve the device id for each connected device
                 deviceIds = new string[count];
                 deviceManager.GetDevices(ref deviceIds[0], ref count);
                 foreach (var deviceId in deviceIds)
@@ -179,6 +178,25 @@ namespace USBMonitorInForms
             }
             if (!anyFound)
                 textBox1.AppendText("No devices connected");
+        }
+        private void LoadInfo()
+        {
+            UpdateAll();
+            updateMTPDrives();
+            if (ReadyDriveLetters.Count > 0)
+                comboBox1.SelectedIndex = 0;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if (ReadyDriveLetters.Count > 0)
+                USBEject.EjectDrive(ReadyDriveLetters[comboBox1.SelectedIndex]);
+            LoadInfo();
+        }
+
+        private void Timer1_Tick(object Sender, EventArgs e)
+        {
+            UpdateWindow();
         }
     }
 }
