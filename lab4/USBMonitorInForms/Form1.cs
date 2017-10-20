@@ -138,5 +138,47 @@ namespace USBMonitorInForms
             if (!foundAny)
                 this.textBox1.AppendText("No devices connected\n");
         }
+
+        void updateMTPDrives()
+        {
+            textBox1.AppendText("MTP devices:\n");
+            bool anyFound = false;
+            try
+            {
+                var deviceManager = new PortableDeviceManager();
+                deviceManager.RefreshDeviceList();
+                var deviceIds = new string[1];
+                uint count = 1;
+                deviceManager.GetDevices(ref deviceIds[0], ref count);
+                // Retrieve the device id for each connected device
+                deviceIds = new string[count];
+                deviceManager.GetDevices(ref deviceIds[0], ref count);
+                foreach (var deviceId in deviceIds)
+                {
+                    var str = new MTPDevice(deviceId).FriendlyName;
+                    bool found = false;
+                    foreach (string name in usbNames)
+                    {
+                        if (name.CompareTo(str) == 0)
+                        {
+                            found = true;
+                            usbNames.Remove(name);
+                            break;
+                        }
+                    }
+                    if (!found)
+                    {
+                        textBox1.AppendText(str + "\n");
+                        anyFound = true;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Thread.Sleep(100);
+            }
+            if (!anyFound)
+                textBox1.AppendText("No devices connected");
+        }
     }
 }
