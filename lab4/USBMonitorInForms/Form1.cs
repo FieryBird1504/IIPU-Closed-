@@ -46,5 +46,50 @@ namespace USBMonitorInForms
         List<string> ReadyDriveLetters;
 
         List<string> usbNames;
+
+        private void UpdateAll()
+        {
+            usbNames = new List<string>();
+            ReadyDriveLetters = new List<string>();
+            bool foundAny = false;
+            comboBox1.Items.Clear();
+            textBox1.Clear();
+            textBox1.AppendText("USB logical drives:\n");
+            textBox1.AppendText(string.Format(OutputFormat, "Drive", "File system", "Free space", "Total space\n"));
+            DriveInfo[] allDrives = DriveInfo.GetDrives();
+            foreach (DriveInfo d in allDrives)
+            {
+                try
+                {
+                    if (d.DriveType == DriveType.Removable)
+                    {
+                        foundAny = true;
+                        if (d.IsReady == true)
+                        {
+                            textBox1.AppendText(string.Format(OutputFormat,
+                                d.Name + " " + d.VolumeLabel, d.DriveFormat,
+                                d.TotalFreeSpace / 1024 / 1024,
+                                d.TotalSize / 1024 / 1024) + "\n");
+                            ReadyDriveLetters.Add(d.Name.Replace("\\", ""));
+                            comboBox1.Items.Add(d.Name);
+
+                        }
+                        else
+                        {
+                            textBox1.AppendText(string.Format("{0, -5} {1}", d.Name, "*** Devise is ready to remove***\n"));
+                        }
+                        usbNames.Add(d.Name);
+                        if (d.VolumeLabel.Length != 0)
+                            usbNames.Add(d.VolumeLabel);
+                    }
+                }
+                catch (Exception)
+                {
+
+                }
+            }
+            if (!foundAny)
+                this.textBox1.AppendText("No devices connected\n");
+        }
     }
 }
