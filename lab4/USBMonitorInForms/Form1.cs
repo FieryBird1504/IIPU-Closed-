@@ -91,5 +91,52 @@ namespace USBMonitorInForms
             if (!foundAny)
                 this.textBox1.AppendText("No devices connected\n");
         }
+
+        private void UpdateWindow()
+        {
+            textBox1.Clear();
+            updateUSBDrives();
+            updateMTPDrives();
+        }
+
+        void updateUSBDrives()
+        {
+            usbNames = new List<string>();
+            textBox1.AppendText("USB logical drives:\n");
+            textBox1.AppendText(string.Format(OutputFormat, "Drive", "File system", "Free space", "Total space") + "\n");
+            DriveInfo[] allDrives = DriveInfo.GetDrives();
+            bool foundAny = false;
+            foreach (DriveInfo d in allDrives)
+            {
+                try
+                {
+                    foundAny = true;
+                    if (d.DriveType == DriveType.Removable)
+                    {
+                        Console.WriteLine("Drive {0}", d.Name);
+                        if (d.IsReady == true)
+                        {
+                            textBox1.AppendText(string.Format(OutputFormat,
+                                d.Name + " " + d.VolumeLabel, d.DriveFormat,
+                                d.TotalFreeSpace / 1024 / 1024,
+                                d.TotalSize / 1024 / 1024) + "\n");
+                        }
+                        else
+                        {
+                            textBox1.AppendText(string.Format("{0, -5} {1}", d.Name, "*** Devise is ready to remove***\n"));
+                        }
+                        usbNames.Add(d.Name);
+                        if (d.VolumeLabel.Length != 0)
+                            usbNames.Add(d.VolumeLabel);
+                    }
+                }
+                catch (Exception)
+                {
+                    Thread.Sleep(100);
+                }
+            }
+            if (!foundAny)
+                this.textBox1.AppendText("No devices connected\n");
+        }
     }
 }
