@@ -58,5 +58,25 @@ namespace USBMonitorInForms
                 return propertyValue;
             }
         }
+        public void Connect()
+        {
+            if (this.isConnected) { return; }
+
+            var clientInfo = (IPortableDeviceValues)new PortableDeviceValues();
+            this.device.Open(this.DeviceId, clientInfo);
+            this.isConnected = true;
+        }
+
+        public void Disconnect()
+        {
+            if (!this.isConnected) { return; }
+            try
+            {
+                this.device.Close();
+            }
+            catch (Exception)
+            {}
+            this.isConnected = false;
+        }
     }
 }
