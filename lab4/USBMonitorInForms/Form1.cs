@@ -19,5 +19,32 @@ namespace USBMonitorInForms
             InitializeComponent();
             LoadInfo();
         }
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+            if (m.Msg == WM_DeviceChange) // if smth happened with usb ports
+            {
+                if (m.WParam.ToInt32() == DBT_DEVICEARRIVAL)
+                {
+                    MessageBox.Show("New USB device connected!",
+                            "USB Monitor", MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                    LoadInfo();
+                }
+                if (m.WParam.ToInt32() == DBT_DEVICEREMOVECOMPLETE)
+                {
+                    LoadInfo();
+                    MessageBox.Show("USB is disconnected!",
+                            "USB Monitor", MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                }
+            }
+        }
+
+        const string OutputFormat = "{0, -15} {1,-11} {2, -11} {3, -11}";
+
+        List<string> ReadyDriveLetters;
+
+        List<string> usbNames;
     }
 }
