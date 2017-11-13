@@ -66,7 +66,22 @@ namespace IIPU_lab4_GUI
 		 
 		}
 
-		private void InitializeComponent1()
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if (cntrl != null)
+            {
+                foreach (Device device in cntrl.deviceList)
+                {
+                    if (String.Compare(device.Name, cb_List.Text) == 0)
+                    {
+                        device.ToggleEnable();
+                        comboBox1_SelectedIndexChanged(null, null);
+                    }
+                }
+            }
+        }
+
+        private void InitializeComponent1()
 		{
 			this.SuspendLayout();
 			this.ClientSize = new System.Drawing.Size(284, 300);
