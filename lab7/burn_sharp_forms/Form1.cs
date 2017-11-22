@@ -179,5 +179,25 @@ namespace burn_sharp_forms
                 }
             }
         }
+        private void btnBurn_Click(object sender, EventArgs e)
+        {
+            if (this.fileToBurn.Items.Count == 0)
+            {
+                MessageBox.Show("Add files to burn", "Info", MessageBoxButtons.OK);
+                return;
+            }
+            else
+            {
+                if (busySpace / 1024 / 1024 / 1024 > totalSpace)
+                {
+                    MessageBox.Show("Too many data, delete some files");
+                    return;
+                }
+                ejectMedia = CheckBoxEject.Checked;
+                _burnData.uniqueRecorderId = discs[AvailableCD.SelectedItem.ToString()].ActiveDiscRecorder;
+                _burnData.volumeName = discs[AvailableCD.SelectedItem.ToString()].VolumeName;
+                backgroundWorker1.RunWorkerAsync(_burnData);
+            }
+        }
     }
 }
