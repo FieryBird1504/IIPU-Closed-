@@ -88,5 +88,96 @@ namespace burn_sharp_forms
             }
             updateProgressBar();
         }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            //get available CDS
+            MsftDiscMaster2 discMaster = null;
+            try
+            {
+                discMaster = new MsftDiscMaster2();
+                if (!discMaster.IsSupportedEnvironment)
+                    return;
+                foreach (string uniqueRecorderId in discMaster)
+                {
+                    var discRecorder = new MsftDiscRecorder2();
+                    discRecorder.InitializeDiscRecorder(uniqueRecorderId);
+                    if (discRecorder.VolumePathNames.Count() > 0)
+                    {
+                        AvailableCD.Items.Add(discRecorder.VolumePathNames.First().ToString());
+                        discs[discRecorder.VolumePathNames.First().ToString()] = discRecorder;
+                    }
+                }
+            }
+            catch (COMException ex)
+            {
+                MessageBox.Show(ex.Message,
+                    string.Format("Error:{0} - Please install IMAPI2", ex.ErrorCode),
+                    MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                return;
+            }
+            finally
+            {
+                if (discMaster != null)
+                {
+                    Marshal.ReleaseComObject(discMaster);
+                }
+            }
+        }
+        private void AvailableCD_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            MsftDiscRecorder2 discRecorder = discs[AvailableCD.Items[AvailableCD.SelectedIndex].ToString()];
+            MsftFileSystemImage fileSystemImage = null;
+            MsftDiscFormat2Data discFormatData = null;
+            try
+            {
+                discFormatData = new MsftDiscFormat2Data();
+                if (!discFormatData.IsCurrentMediaSupported(discRecorder))
+                {
+                    MessageBox.Show("Media not supported");
+                    return;
+                }
+                else
+                {
+                    discFormatData.Recorder = discRecorder;
+                    fileSystemImage = new MsftFileSystemImage();
+                    try
+                    {
+                        fileSystemImage.ChooseImageDefaultsForMediaType(discFormatData.CurrentPhysicalMediaType);
+                    }
+                    catch
+                    {
+                        MessageBox.Show(AvailableCD.SelectedItem.ToString() + " read only");
+                        return;
+                    }
+                    if (!discFormatData.MediaHeuristicallyBlank)
+                    {
+                        fileSystemImage.MultisessionInterfaces = discFormatData.MultisessionInterfaces;
+                        fileSystemImage.ImportFileSystem();
+                    }
+                    Int64 totalBlocks = fileSystemImage.UsedBlocks + fileSystemImage.FreeMediaBlocks;
+                    this.totalSpace = getGbSize(totalBlocks);
+                    this.freeSpace = getGbSize(fileSystemImage.FreeMediaBlocks);
+                    this.busySpace = getGbSize(fileSystemImage.UsedBlocks);
+                    this.updateProgressBar();
+                }
+            }
+            catch (COMException exception)
+            {
+                MessageBox.Show(this, exception.Message, "Detect Media Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (discFormatData != null)
+                {
+                    Marshal.ReleaseComObject(discFormatData);
+                }
+
+                if (fileSystemImage != null)
+                {
+                    Marshal.ReleaseComObject(fileSystemImage);
+                }
+            }
+        }
     }
 }
