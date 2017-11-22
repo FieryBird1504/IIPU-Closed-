@@ -54,5 +54,39 @@ namespace burn_sharp_forms
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
         }
+        private void addDirectory(string dirPath)
+        {
+            string[] filesPathes = Directory.GetFiles(dirPath);
+            foreach (string filePath in filesPathes)
+            {
+                this.fileToBurn.Items.Add(filePath);
+                busySpace += (double)(new FileInfo(filePath).Length);
+            }
+            string[] subDirs = Directory.GetDirectories(dirPath);
+            foreach (string subdirPath in subDirs)
+            {
+                addDirectory(subdirPath);
+            }
+        }
+        private void Form1_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            foreach (string file in files)
+            {
+                FileAttributes attr = File.GetAttributes(file);
+                if (attr.HasFlag(FileAttributes.Directory))
+                {
+                    addDirectory(file);
+                    mediaItems.Add(new DirectoryItem(file));
+                }
+                else
+                {
+                    this.fileToBurn.Items.Add(file);
+                    busySpace += (double)(new FileInfo(file).Length);
+                    mediaItems.Add(new FileItem(file));
+                }
+            }
+            updateProgressBar();
+        }
     }
 }
