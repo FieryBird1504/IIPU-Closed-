@@ -344,5 +344,51 @@ namespace burn_sharp_forms
                 discs[AvailableCD.SelectedItem.ToString()].EjectMedia();
             }
         }
+        private void btnClearFiles_Click(object sender, EventArgs e)
+        {
+            mediaItems.Clear();
+            fileToBurn.Items.Clear();
+            busySpace = 0;
+            updateProgressBar();
+        }
+        #endregion
+
+        #region helperFunctions
+        private void updateProgressBar()
+        {
+            progressBarSpaceOnDisc.CustomText = String.Format("{0:0.##} of {1:0.00} gb", this.busySpace / 1024 / 1024 / 1024, this.totalSpace);
+            progressBarSpaceOnDisc.Value = (int)((double)(this.busySpace / 1024 / 1024 / 1024 / totalSpace) * 100);
+        }
+        private double getGbSize(Int64 blocks)
+        {
+            return (double)((ulong)blocks * 2048) / 1024 / 1024 / 1024;
+        }
+        #endregion
+
+        void discFormatData_Update([In, MarshalAs(UnmanagedType.IDispatch)] object sender, [In, MarshalAs(UnmanagedType.IDispatch)] object progress)
+        {
+            if (backgroundWorker1.CancellationPending)
+            {
+                var format2Data = (IDiscFormat2Data)sender;
+                format2Data.CancelWrite();
+                return;
+            }
+
+            var eventArgs = (IDiscFormat2DataEventArgs)progress;
+
+            _burnData.task = BURN_MEDIA_TASK.BURN_MEDIA_TASK_WRITING;
+            _burnData.elapsedTime = eventArgs.ElapsedTime;
+            _burnData.remainingTime = eventArgs.RemainingTime;
+            _burnData.totalTime = eventArgs.TotalTime;
+            _burnData.currentAction = eventArgs.CurrentAction;
+            _burnData.startLba = eventArgs.StartLba;
+            _burnData.sectorCount = eventArgs.SectorCount;
+            _burnData.lastReadLba = eventArgs.LastReadLba;
+            _burnData.lastWrittenLba = eventArgs.LastWrittenLba;
+            _burnData.totalSystemBuffer = eventArgs.TotalSystemBuffer;
+            _burnData.usedSystemBuffer = eventArgs.UsedSystemBuffer;
+            _burnData.freeSystemBuffer = eventArgs.FreeSystemBuffer;
+            backgroundWorker1.ReportProgress(0, _burnData);
+        }
     }
 }
