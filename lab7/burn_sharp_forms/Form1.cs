@@ -199,5 +199,150 @@ namespace burn_sharp_forms
                 backgroundWorker1.RunWorkerAsync(_burnData);
             }
         }
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            MsftDiscRecorder2 discRecorder = null;
+            MsftDiscFormat2Data discFormatData = null;
+
+            try
+            {
+                discRecorder = new MsftDiscRecorder2();
+                var burnData = (BurnData)e.Argument;
+                discRecorder.InitializeDiscRecorder(burnData.uniqueRecorderId);
+
+                discFormatData = new MsftDiscFormat2Data
+                {
+                    Recorder = discRecorder,
+                    ClientName = clientName,
+                    ForceMediaToBeClosed = stopWriteInFuture
+                };
+
+                var burnVerification = (IBurnVerification)discFormatData;
+                burnVerification.BurnVerificationLevel = verificationLevel;
+
+                object[] multisessionInterfaces = null;
+                if (!discFormatData.MediaHeuristicallyBlank)
+                {
+                    multisessionInterfaces = discFormatData.MultisessionInterfaces;
+                }
+
+                IStream fileSystem;
+                if (!CreateMediaFileSystem(discRecorder, multisessionInterfaces, out fileSystem, _burnData.volumeName))
+                {
+                    e.Result = -1;
+                    return;
+                }
+
+                discFormatData.Update += discFormatData_Update;
+
+                try
+                {
+                    discFormatData.Write(fileSystem);
+                    e.Result = 0;
+                }
+                catch (COMException ex)
+                {
+                    e.Result = ex.ErrorCode;
+                    MessageBox.Show(ex.Message, "IDiscFormat2Data.Write failed",
+                        MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                }
+                finally
+                {
+                    if (fileSystem != null)
+                    {
+                        Marshal.FinalReleaseComObject(fileSystem);
+                    }
+                }
+
+                discFormatData.Update -= discFormatData_Update;
+            }
+            catch (COMException exception)
+            {
+                MessageBox.Show(exception.Message);
+                e.Result = exception.ErrorCode;
+            }
+            finally
+            {
+                if (discRecorder != null)
+                {
+                    Marshal.ReleaseComObject(discRecorder);
+                }
+
+                if (discFormatData != null)
+                {
+                    Marshal.ReleaseComObject(discFormatData);
+                }
+            }
+
+        }
+        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            var burnData = (BurnData)e.UserState;
+            if (burnData.task == BURN_MEDIA_TASK.BURN_MEDIA_TASK_FILE_SYSTEM)
+            {
+                progressBarStatusWriting.CustomText = burnData.statusMessage;
+            }
+            else if (burnData.task == BURN_MEDIA_TASK.BURN_MEDIA_TASK_WRITING)
+            {
+                #region BigSwitch
+                switch (burnData.currentAction)
+                {
+                    case IMAPI_FORMAT2_DATA_WRITE_ACTION.IMAPI_FORMAT2_DATA_WRITE_ACTION_VALIDATING_MEDIA:
+                        progressBarStatusWriting.CustomText = "Validating current media...";
+                        break;
+
+                    case IMAPI_FORMAT2_DATA_WRITE_ACTION.IMAPI_FORMAT2_DATA_WRITE_ACTION_FORMATTING_MEDIA:
+                        progressBarStatusWriting.CustomText = "Formatting media...";
+                        break;
+
+                    case IMAPI_FORMAT2_DATA_WRITE_ACTION.IMAPI_FORMAT2_DATA_WRITE_ACTION_INITIALIZING_HARDWARE:
+                        progressBarStatusWriting.CustomText = "Initializing hardware...";
+                        break;
+
+                    case IMAPI_FORMAT2_DATA_WRITE_ACTION.IMAPI_FORMAT2_DATA_WRITE_ACTION_CALIBRATING_POWER:
+                        progressBarStatusWriting.CustomText = "Optimizing laser intensity...";
+                        break;
+
+                    case IMAPI_FORMAT2_DATA_WRITE_ACTION.IMAPI_FORMAT2_DATA_WRITE_ACTION_WRITING_DATA:
+                        long writtenSectors = burnData.lastWrittenLba - burnData.startLba;
+
+                        if (writtenSectors > 0 && burnData.sectorCount > 0)
+                        {
+                            var percent = (int)((100 * writtenSectors) / burnData.sectorCount);
+                            progressBarStatusWriting.CustomText = string.Format("Progress: {0}%", percent);
+                            progressBarStatusWriting.Value = percent;
+                        }
+                        else
+                        {
+                            progressBarStatusWriting.CustomText = "Progress 0%";
+                            progressBarStatusWriting.Value = 0;
+                        }
+                        break;
+
+                    case IMAPI_FORMAT2_DATA_WRITE_ACTION.IMAPI_FORMAT2_DATA_WRITE_ACTION_FINALIZATION:
+                        progressBarStatusWriting.CustomText = "Finalizing writing...";
+                        break;
+
+                    case IMAPI_FORMAT2_DATA_WRITE_ACTION.IMAPI_FORMAT2_DATA_WRITE_ACTION_COMPLETED:
+                        progressBarStatusWriting.CustomText = "Completed!";
+                        break;
+
+                    case IMAPI_FORMAT2_DATA_WRITE_ACTION.IMAPI_FORMAT2_DATA_WRITE_ACTION_VERIFYING:
+                        progressBarStatusWriting.CustomText = "Verifying";
+                        break;
+                }
+                #endregion
+            }
+        }
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            MessageBox.Show("Burn ready", "Info", MessageBoxButtons.OK);
+            progressBarStatusWriting.CustomText = "";
+            progressBarStatusWriting.Value = 0;
+            if (ejectMedia)
+            {
+                discs[AvailableCD.SelectedItem.ToString()].EjectMedia();
+            }
+        }
     }
 }
