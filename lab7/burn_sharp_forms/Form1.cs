@@ -390,5 +390,82 @@ namespace burn_sharp_forms
             _burnData.freeSystemBuffer = eventArgs.FreeSystemBuffer;
             backgroundWorker1.ReportProgress(0, _burnData);
         }
+        private bool CreateMediaFileSystem(IDiscRecorder2 discRecorder, object[] multisessionInterfaces, out IStream dataStream, string volumeName)
+        {
+            MsftFileSystemImage fileSystemImage = null;
+            try
+            {
+                fileSystemImage = new MsftFileSystemImage();
+                fileSystemImage.ChooseImageDefaults(discRecorder);
+                fileSystemImage.FileSystemsToCreate =
+                    FsiFileSystems.FsiFileSystemJoliet | FsiFileSystems.FsiFileSystemISO9660;
+                DateTime now = DateTime.Now;
+                fileSystemImage.VolumeName = now.Year + "_" + now.Month + "_" + now.Day;
+
+                fileSystemImage.Update += fileSystemImage_Update;
+
+                // If multisessions, then import previous sessions
+                if (multisessionInterfaces != null)
+                {
+                    fileSystemImage.MultisessionInterfaces = multisessionInterfaces;
+                    fileSystemImage.ImportFileSystem();
+                }
+
+                IFsiDirectoryItem rootItem = fileSystemImage.Root;
+
+                foreach (IMediaItem mediaItem in mediaItems)
+                {
+                    if (backgroundWorker1.CancellationPending)
+                    {
+                        break;
+                    }
+
+                    mediaItem.AddToFileSystem(rootItem);
+                }
+
+                fileSystemImage.Update -= fileSystemImage_Update;
+
+                if (backgroundWorker1.CancellationPending)
+                {
+                    dataStream = null;
+                    return false;
+                }
+
+                dataStream = fileSystemImage.CreateResultImage().ImageStream;
+            }
+            catch (COMException exception)
+            {
+                MessageBox.Show(this, exception.Message, "Create File System Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                dataStream = null;
+                return false;
+            }
+            finally
+            {
+                if (fileSystemImage != null)
+                {
+                    Marshal.ReleaseComObject(fileSystemImage);
+                }
+            }
+
+            return true;
+        }
+        void fileSystemImage_Update([In, MarshalAs(UnmanagedType.IDispatch)] object sender,
+            [In, MarshalAs(UnmanagedType.BStr)]string currentFile, [In] int copiedSectors, [In] int totalSectors)
+        {
+            var percentProgress = 0;
+            if (copiedSectors > 0 && totalSectors > 0)
+            {
+                percentProgress = (copiedSectors * 100) / totalSectors;
+            }
+
+            if (!string.IsNullOrEmpty(currentFile))
+            {
+                var fileInfo = new FileInfo(currentFile);
+                _burnData.statusMessage = "Adding \"" + fileInfo.Name + "\" to image...";
+                _burnData.task = BURN_MEDIA_TASK.BURN_MEDIA_TASK_FILE_SYSTEM;
+                backgroundWorker1.ReportProgress(percentProgress, _burnData);
+            }
+        }
     }
 }
