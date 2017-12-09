@@ -24,10 +24,9 @@ namespace IIPU_lab6
 		{
 			MyForm = formArg;
 			wifi = new Wifi();
-			//wifi.ConnectionStatusChanged += wifi_ConnectionStatusChanged;
 
 			UpdateTimer = new Timer();
-			UpdateTimer.Interval = 1000; //ms
+			UpdateTimer.Interval = 1000;
 			UpdateTimer.Enabled = true;
 			UpdateTimer.Tick += UpdateWifiInfo;
 
@@ -71,11 +70,9 @@ namespace IIPU_lab6
 			{
 				var authRequest = new AuthRequest(ap);
 				bool overwrite = true;
-	
-				// Requesting password.
 				if (authRequest.IsPasswordRequired)
 				{
-					if (!ap.IsValidPassword(password)) // Invalid pass.
+					if (!ap.IsValidPassword(password))
 					{
 						return false;
 					}
@@ -86,7 +83,6 @@ namespace IIPU_lab6
 					authRequest.Password = "";
 				}
 
-				// Connecting.
 				try
 				{
 					return ap.Connect(authRequest, true);
@@ -95,12 +91,10 @@ namespace IIPU_lab6
 				{
 					return false;
 				}
-				// Connecting.
 			}
 			catch(Exception){ }
 
-			return true;
-			
+			return true;	
 		} 
 
 		public static string[] GetMacAddresses()
@@ -122,7 +116,6 @@ namespace IIPU_lab6
 			);
 
 			var bssidLength = arr[0].Length - 17;
-			//MessageBox.Show(arr[0].Length+"");
 			for(var i = 0; i < arr.Length-1; i += 1)
 			{
 				arr[i] = arr[i].Substring(bssidLength);
@@ -130,7 +123,5 @@ namespace IIPU_lab6
 
 			return arr;
 		}
-
-
 	}
 }

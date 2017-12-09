@@ -24,19 +24,13 @@ namespace IIPU_lab6
 		}
 
 		private void label1_Click(object sender, EventArgs e)
-		{
-
-		}
+		{}
 
 		private void infoUpdate(object sender, EventArgs e)
-		{
-			
-			lb_info.Text = Cntrl.accessPoints[lbox_wifiList.SelectedIndex].ToString(); // All the info.
-			
+		{	
+			lb_info.Text = Cntrl.accessPoints[lbox_wifiList.SelectedIndex].ToString();
 			lb_info.Text += "Signal: " + Cntrl.accessPoints[lbox_wifiList.SelectedIndex].SignalStrength + "%"
 			              + Environment.NewLine + "Mac: ";
-			
-			
 			lb_info.Text += Cntrl.MacAddresses[lbox_wifiList.SelectedIndex];
 		}
 
@@ -44,10 +38,8 @@ namespace IIPU_lab6
 		{
 			if (!Cntrl.Connect(Cntrl.accessPoints[lbox_wifiList.SelectedIndex], tb_password.Text))
 			{
-				MessageBox.Show("Cannot connect to the wifi.", ":c");
+				MessageBox.Show("Cannot connect");
 			}
 		}
-
-
 	}
 }

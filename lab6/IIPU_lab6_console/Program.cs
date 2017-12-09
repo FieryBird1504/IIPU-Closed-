@@ -36,7 +36,6 @@ namespace SimpleWifi.Example
 				}
 			}
 
-			// Init wifi object and event handlers
 			wifi = new Wifi();
 			wifi.ConnectionStatusChanged += wifi_ConnectionStatusChanged;
 
@@ -137,14 +136,12 @@ namespace SimpleWifi.Example
 			}
 			AccessPoint selectedAP = accessPoints.ToList()[selectedIndex];
 
-			// Auth
 			AuthRequest authRequest = new AuthRequest(selectedAP);
 			bool overwrite = true;
 
 			if (authRequest.IsPasswordRequired)
 			{
 				if (selectedAP.HasProfile)
-					// If there already is a stored profile for the network, we can either use it or overwrite it with a new password.
 				{
 					Console.Write("\r\nA network profile already exist, do you want to use it (y/n)? ");
 					if (Console.ReadLine().ToLower() == "y")
